@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         String        @default("ADMIN")
+  avatarUrl    String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  activities   ActivityLog[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                  String    @id @default(cuid())
+  name                String
+  title               String
+  shortBio            String
+  fullBio             String
+  avatarUrl           String?
+  location            String?
+  email               String?
+  phone               String?
+  availability        String    @default("Available for hire")
+  yearsOfExperience   Int       @default(5)
+  completedProjects   Int       @default(20)
+  certificationsCount Int       @default(10)
+  technologiesCount   Int       @default(30)
+  resumeUrl           String?
+  resumeName          String?
+  resumeUpdatedAt     DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  @@map("profiles")
+}
+
+model Technology {
+  id        String              @id @default(cuid())
+  name      String              @unique
+  slug      String              @unique
+  icon      String?
+  color     String?
+  createdAt DateTime            @default(now())
+  projects  ProjectTechnology[]
+
+  @@map("technologies")
+}
+
+model Project {
+  id               String              @id @default(cuid())
+  title            String
+  slug             String              @unique
+  shortDescription String
+  fullDescription  String
+  mainImage        String
+  gallery          String              @default("[]") // JSON array of image URLs
+  category         String              @default("Web Application")
+  clientName       String?
+  githubUrl        String?
+  liveDemoUrl      String?
+  challenges       String?
+  solutions        String?
+  results          String?
+  startDate        DateTime?
+  endDate          DateTime?
+  isFeatured       Boolean             @default(false)
+  isPublished      Boolean             @default(true)
+  displayOrder     Int                 @default(0)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  technologies     ProjectTechnology[]
+
+  @@index([slug])
+  @@index([isPublished, displayOrder])
+  @@map("projects")
+}
+
+model ProjectTechnology {
+  projectId    String
+  technologyId String
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, technologyId])
+  @@map("project_technologies")
+}
+
+model Skill {
+  id                String   @id @default(cuid())
+  name              String
+  category          String   @default("FRONTEND")
+  icon              String?
+  proficiency       Int      @default(80)
+  yearsOfExperience Int?     @default(3)
+  isFeatured        Boolean  @default(false)
+  isPublished       Boolean  @default(true)
+  displayOrder      Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([category, isPublished, displayOrder])
+  @@map("skills")
+}
+
+model Experience {
+  id               String    @id @default(cuid())
+  jobTitle         String
+  company          String
+  companyLogo      String?
+  companyUrl       String?
+  location         String?
+  employmentType   String    @default("Full-time")
+  startDate        DateTime
+  endDate          DateTime?
+  isCurrent        Boolean   @default(false)
+  description      String
+  responsibilities String    @default("[]") // JSON array of strings
+  technologies     String    @default("[]") // JSON array of strings
+  isPublished      Boolean   @default(true)
+  displayOrder     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([isPublished, displayOrder])
+  @@map("experiences")
+}
+
+model Education {
+  id             String    @id @default(cuid())
+  institution    String
+  degree         String
+  fieldOfStudy   String
+  location       String?
+  startDate      DateTime
+  endDate        DateTime?
+  isCurrent      Boolean   @default(false)
+  description    String?
+  institutionUrl String?
+  logo           String?
+  isPublished    Boolean   @default(true)
+  displayOrder   Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([isPublished, displayOrder])
+  @@map("educations")
+}
+
+model Certificate {
+  id               String    @id @default(cuid())
+  title            String
+  issuingOrg       String
+  credentialId     String?
+  credentialUrl    String?
+  issueDate        DateTime
+  expiryDate       DateTime?
+  doesNotExpire    Boolean   @default(true)
+  certificateImage String?
+  certificatePdf   String?
+  description      String?
+  skills           String    @default("[]") // JSON array of strings
+  isFeatured       Boolean   @default(false)
+  isPublished      Boolean   @default(true)
+  displayOrder     Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([isPublished, displayOrder])
+  @@map("certificates")
+}
+
+model Achievement {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  date         DateTime
+  organization String?
+  image        String?
+  url          String?
+  isFeatured   Boolean   @default(false)
+  isPublished  Boolean   @default(true)
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([isPublished, displayOrder])
+  @@map("achievements")
+}
+
+model BlogPost {
+  id             String        @id @default(cuid())
+  title          String
+  slug           String        @unique
+  coverImage     String?
+  excerpt        String
+  content        String
+  author         String        @default("Portfolio Owner")
+  publishedDate  DateTime?
+  isPublished    Boolean       @default(false)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  tags           BlogPostTag[]
+
+  @@index([slug])
+  @@index([isPublished, publishedDate])
+  @@map("blog_posts")
+}
+
+model BlogTag {
+  id    String        @id @default(cuid())
+  name  String        @unique
+  slug  String        @unique
+  posts BlogPostTag[]
+
+  @@map("blog_tags")
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("blog_post_tags")
+}
+
+model SocialLink {
+  id           String   @id @default(cuid())
+  platform     String
+  url          String
+  icon         String?
+  isEnabled    Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isEnabled, displayOrder])
+  @@map("social_links")
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  publicId  String?
+  fileType  String
+  fileSize  Int
+  format    String?
+  folder    String?  @default("portfolio")
+  createdAt DateTime @default(now())
+
+  @@index([fileType, createdAt])
+  @@map("media")
+}
+
+model ContactMessage {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  subject    String
+  message    String
+  isRead     Boolean  @default(false)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([isRead, createdAt])
+  @@map("contact_messages")
+}
+
+model SiteSettings {
+  id                String   @id @default(cuid())
+  siteName          String   @default("Hariharan Portfolio")
+  siteDescription   String   @default("Premium Personal Portfolio & Engineering Showcase")
+  ownerName         String   @default("Hariharan")
+  ownerEmail        String   @default("contact@example.com")
+  location          String   @default("San Francisco, CA")
+  timezone          String   @default("UTC")
+  heroGreeting      String   @default("Hello, I'm")
+  heroTitle         String   @default("Full-Stack Developer & Software Engineer")
+  heroSubtitle      String   @default("Building scalable, elegant, and user-focused digital experiences.")
+  primaryCtaText    String   @default("View My Work")
+  primaryCtaUrl     String   @default("#projects")
+  secondaryCtaText  String   @default("Download Resume")
+  secondaryCtaUrl   String   @default("/resume")
+  primaryColor      String   @default("emerald")
+  appearanceMode    String   @default("system")
+  navSections       String   @default("{\"about\":true,\"skills\":true,\"experience\":true,\"education\":true,\"projects\":true,\"certifications\":true,\"achievements\":true,\"blog\":true,\"contact\":true}")
+  enableBlog        Boolean  @default(true)
+  enableContactForm Boolean  @default(true)
+  seoTitle          String?  @default("Hariharan | Full-Stack Developer & Software Engineer")
+  seoDescription    String?  @default("Explore my portfolio, featured engineering projects, certifications, technical skills, and software development insights.")
+  seoKeywords       String?  @default("software engineer, full-stack developer, nextjs, react, typescript, postgresql, portfolio")
+  ogImage           String?
+  twitterImage      String?
+  favicon           String?
+  updatedAt         DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, createdAt])
+  @@map("activity_logs")
+}
